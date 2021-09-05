@@ -1,4 +1,4 @@
-# c500pro
+# C500Pro
 Phần mềm kiểm soát trẻ con học tập trực tuyến mùa dịch Covid-19 
 Các chức năng của phần mềm:
 1. Cung cấp các chức năng đơn giản trong 1 giao diện duy nhất cho trẻ con thao tác
