@@ -21,10 +21,12 @@ namespace C500Pro
             proxeServerImpl.StartServer();
             // Thêm white list cho phép truy cập
             proxeServerImpl.WhiteListDomain.Add("facebook");
+            System.Diagnostics.Process.Start(@"C:\Program Files\Google\Chrome\Application\chrome.exe", "--proxy-server=\"http://127.0.0.1:8000\"");
 
-            // Command khởi động chrome với proxy server này
-            // "C:\Program Files\Google\Chrome\Application\chrome.exe" --proxy-server="http://127.0.0.1:8000" --flag-switches-begin --flag-switches-end --origin-trial-disabled-features=SecurePaymentConfirmation
             Application.Run(new frMain());
+
+            proxeServerImpl.StopServer();
         }
+
     }
 }
