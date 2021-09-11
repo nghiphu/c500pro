@@ -19,6 +19,11 @@ namespace C500Pro.Lib
         /// </summary>
         public List<string> WhiteListDomain { get; set; }
 
+        /// <summary>
+        /// Danh sách domain được phép. Nếu danh sách rỗng sẽ chặn tất cả
+        /// </summary>
+        public List<string> BlackListDomain { get; set; }
+
         ProxyServer proxyServer;
         int _proxyPort;
 
@@ -30,6 +35,7 @@ namespace C500Pro.Lib
         {
             _proxyPort = proxyPort;
             WhiteListDomain = new List<string>();
+            BlackListDomain = new List<string>();
         }
 
         /// <summary>
@@ -93,7 +99,7 @@ namespace C500Pro.Lib
 
         private async Task OnRequest(object sender, SessionEventArgs e)
         {
-            Console.WriteLine(e.HttpClient.Request.Url);
+            // Console.WriteLine(e.HttpClient.Request.Url);
 
             // read request headers
             var requestHeaders = e.HttpClient.Request.Headers;
@@ -117,8 +123,9 @@ namespace C500Pro.Lib
             // To cancel a request with a custom HTML content
             // Filter URL
             string url = e.HttpClient.Request.RequestUri.AbsoluteUri.ToLower();
-            if (this.WhiteListDomain.FirstOrDefault(p => url.Contains(p)) == null)
+            if (this.WhiteListDomain.FirstOrDefault(p => url.Contains(p)) == null || this.BlackListDomain.FirstOrDefault(p => url.Contains(p)) != null)
             {
+                C500.WriteToBinaryFile<string>($"Band {e.HttpClient.Request.Url}\r\n", true);
                 e.Ok("<!DOCTYPE html>" +
                     "<html><head<meta charset=\"UTF-8\"</head><body><h1>" +
                     "Trang nay da bi chan" +
@@ -130,11 +137,7 @@ namespace C500Pro.Lib
                 // e.Redirect("https://www.paypal.com");
             }
 
-            // Redirect example
-            //if (e.HttpClient.Request.RequestUri.AbsoluteUri.Contains("wikipedia.org"))
-            //{
-            //    e.Redirect("https://www.paypal.com");
-            //}
+            C500.WriteToBinaryFile<string>($"Allow {e.HttpClient.Request.Url}\r\n", true);
         }
 
         // Modify response
@@ -188,5 +191,31 @@ namespace C500Pro.Lib
         }
 
         #endregion
+
+        /// <summary>
+        /// Nhận diện các đường dẫn liên quan của 1 domain (ví dụ link CDN) nhằm chọn hết vào whitelist
+        /// </summary>
+        /// <param name="domain"></param>
+        /// <returns></returns>
+        public static IEnumerable<string> DetectAllLink(string domain)
+        {
+            WebClient webClient = new WebClient();
+            webClient.Headers.Add(HttpRequestHeader.UserAgent, "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) coc_coc_browser/97.0.206 Chrome/91.0.4472.206 Safari/537.36");
+            // https://stackoverflow.com/questions/10576686/c-sharp-regex-pattern-to-extract-urls-from-given-string-not-full-html-urls-but
+            string rawString = webClient.DownloadString(domain);
+            var links = rawString.Split("\t\n \"".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Where(s => s.StartsWith("http://") || s.StartsWith("www.") || s.StartsWith("https://"));
+            List<string> res = new List<string>();
+            foreach(string l in links)
+            {
+                try
+                {
+                    Uri temp = new Uri(l);
+                    if (!res.Contains(temp.Host))
+                        res.Add(temp.Host);
+                }
+                catch { }
+            }
+            return res;
+        }
     }
 }

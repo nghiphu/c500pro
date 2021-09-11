@@ -18,11 +18,19 @@ namespace C500Pro
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-
             ProxeServerImpl = new Lib.ProxeServerImpl(8000);
             ProxeServerImpl.StartServer();
-            // Thêm white list cho phép truy cập
-            ProxeServerImpl.WhiteListDomain.Add("facebook");
+
+            // Thêm tất cả link cdn trên genk.vn vào white list
+            ProxeServerImpl.WhiteListDomain.AddRange(new[] { "genk.vn" });
+            var test = Lib.ProxeServerImpl.DetectAllLink("https://genk.vn/");
+            foreach (string l in test)
+                ProxeServerImpl.WhiteListDomain.Add(l);
+
+            // Trong white list ở trên có facebook => chặn riêng bằng back list 
+            ProxeServerImpl.BlackListDomain.AddRange(new[] { "facebook", "static.xx.fbcdn"});
+
+            // Khởi động chrome với proxy để test
             System.Diagnostics.Process.Start(@"C:\Program Files\Google\Chrome\Application\chrome.exe", "--proxy-server=\"http://127.0.0.1:8000\"");
 
             Application.Run(new frMain());
