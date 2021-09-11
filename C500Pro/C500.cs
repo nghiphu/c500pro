@@ -1,4 +1,5 @@
-﻿using System;
+﻿using C500Pro.Database;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,6 +12,10 @@ namespace C500Pro
     [Serializable()]
     class C500 
     {
+        static C500()
+        {
+        }
+
         public string HocTrucTuyen { get; set; }
 
         public List<string> UngDung { get; set; }
@@ -39,6 +44,25 @@ namespace C500Pro
                 var binaryFormatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                 return (T)binaryFormatter.Deserialize(stream);
             }
-        }        
+        }
+
+        public static async void LogNetWork(NetWorkMode mode, string url)
+        {
+            try
+            {
+                // Phải khởi tạo dbContext riêng để xử lý trường hợp ghi log từ nhiều luồng (tránh xung đột)
+                C500ProDbContext dbContext = new C500ProDbContext();
+                dbContext.LogNetWorks.Add(new Models.LogNetWork() { Url = url, Mode = mode.ToString() });
+                await dbContext.SaveChangesAsync();
+            }
+            catch
+            {
+            }
+        }
+
+        public enum NetWorkMode
+        {
+            Band, Allow
+        }
     }
 }

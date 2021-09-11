@@ -125,7 +125,7 @@ namespace C500Pro.Lib
             string url = e.HttpClient.Request.RequestUri.AbsoluteUri.ToLower();
             if (this.WhiteListDomain.FirstOrDefault(p => url.Contains(p)) == null || this.BlackListDomain.FirstOrDefault(p => url.Contains(p)) != null)
             {
-                C500.WriteToBinaryFile<string>($"Band {e.HttpClient.Request.Url}\r\n", true);
+                C500.LogNetWork(C500.NetWorkMode.Band, e.HttpClient.Request.Url);
                 e.Ok("<!DOCTYPE html>" +
                     "<html><head<meta charset=\"UTF-8\"</head><body><h1>" +
                     "Trang nay da bi chan" +
@@ -136,8 +136,10 @@ namespace C500Pro.Lib
                 // Hoặc có thể dùng redirect sang url khác
                 // e.Redirect("https://www.paypal.com");
             }
-
-            C500.WriteToBinaryFile<string>($"Allow {e.HttpClient.Request.Url}\r\n", true);
+            else
+            {
+                C500.LogNetWork(C500.NetWorkMode.Allow,e.HttpClient.Request.Url);
+            }
         }
 
         // Modify response

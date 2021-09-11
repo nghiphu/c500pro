@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -18,6 +19,9 @@ namespace C500Pro
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            new Database.C500ProDbContext().Migration();
+
             ProxeServerImpl = new Lib.ProxeServerImpl(8000);
             ProxeServerImpl.StartServer();
 
@@ -29,7 +33,6 @@ namespace C500Pro
 
             // Trong white list ở trên có facebook => chặn riêng bằng back list 
             ProxeServerImpl.BlackListDomain.AddRange(new[] { "facebook", "static.xx.fbcdn"});
-
             // Khởi động chrome với proxy để test
             System.Diagnostics.Process.Start(@"C:\Program Files\Google\Chrome\Application\chrome.exe", "--proxy-server=\"http://127.0.0.1:8000\"");
 
